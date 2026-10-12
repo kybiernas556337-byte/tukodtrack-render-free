@@ -4,7 +4,7 @@ use App\Http\Controllers\{AuthController, DashboardController, SaleController, P
 use App\Http\Middleware\EnsureRole;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => auth()->check() ? redirect()->route('overview') : view('landing'))->name('home');
+Route::get('/', fn () => auth()->check() ? redirect()->route('overview') : view('welcome'))->name('home');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'show'])->name('login');
