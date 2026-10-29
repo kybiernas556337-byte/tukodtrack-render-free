@@ -61,9 +61,9 @@
     <main class="page">
       @if(session('success'))
         <div class="toast" data-toast><x-icon name="check" /> {{ session('success') }}
-          @if(session('receipt'))<a href="{{ session('receipt') }}" target="_blank">Print receipt</a>@endif</div>
+          @if(session('receipt'))<a href="{{ session('receipt') }}" target="_blank">Print receipt</a>@endif <button type="button" data-dismiss-notice aria-label="Dismiss notice" class="notice-dismiss">×</button></div>
       @endif
-      @if(session('error'))<div class="toast bad" data-toast><x-icon name="alert" /> {{ session('error') }}</div>@endif
+      @if(session('error'))<div class="toast bad" data-toast><x-icon name="alert" /> {{ session('error') }} <button type="button" data-dismiss-notice aria-label="Dismiss notice" class="notice-dismiss">×</button></div>@endif
       @if($errors->any())<div class="alert">{{ $errors->first() }}</div>@endif
 
       @yield('content')
