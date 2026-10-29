@@ -12,9 +12,53 @@
     if (e.target.closest('[data-print]')) window.print();
   });
   document.addEventListener('click', e => { if (e.target.closest('[data-dismiss-notice]')) e.target.closest('[data-toast]')?.remove(); });
+  // App-owned confirmation dialog, instead of browser confirm()/prompt().
+  const actionDialog = document.getElementById('actionConfirmDialog');
+  let pendingForm = null;
+  let pendingSubmitter = null;
+  let submittingApproved = false;
+  const confirmMessage = document.getElementById('actionConfirmMessage');
+  const confirmTitle = document.getElementById('actionConfirmTitle');
+  const confirmReasonWrap = document.getElementById('actionConfirmReasonWrap');
+  const confirmReason = document.getElementById('actionConfirmReason');
+  const confirmReasonError = document.getElementById('actionConfirmReasonError');
+  const confirmAccept = document.getElementById('actionConfirmAccept');
+  const clearPending = () => { pendingForm = null; pendingSubmitter = null; submittingApproved = false; };
   document.addEventListener('submit', e => {
-    const message = e.target.dataset?.confirm;
-    if (message && !confirm(message)) e.preventDefault();
+    const form = e.target;
+    const message = form.dataset?.confirm;
+    if (!message || submittingApproved) return;
+    e.preventDefault();
+    if (!actionDialog) return;
+    pendingForm = form;
+    pendingSubmitter = e.submitter || null;
+    confirmMessage.textContent = message;
+    confirmTitle.textContent = form.dataset.confirmTitle || 'Confirm action';
+    confirmAccept.textContent = form.dataset.confirmAction || 'Yes, continue';
+    const needsReason = form.dataset.confirmReason === '1';
+    confirmReasonWrap.hidden = !needsReason;
+    confirmReason.value = '';
+    confirmReasonError.hidden = true;
+    actionDialog.showModal();
+    if (needsReason) confirmReason.focus();
+  });
+  document.getElementById('actionConfirmCancel')?.addEventListener('click', () => actionDialog.close());
+  actionDialog?.addEventListener('cancel', clearPending);
+  actionDialog?.addEventListener('close', clearPending);
+  confirmAccept?.addEventListener('click', () => {
+    if (!pendingForm) return;
+    if (pendingForm.dataset.confirmReason === '1') {
+      const reason = confirmReason.value.trim();
+      if (!reason) { confirmReasonError.hidden = false; confirmReason.focus(); return; }
+      const reasonField = pendingForm.querySelector('[name="void_reason"]');
+      if (reasonField) reasonField.value = reason;
+    }
+    const form = pendingForm, submitter = pendingSubmitter;
+    submittingApproved = true;
+    actionDialog.close();
+    // requestSubmit preserves normal form validation, CSRF token, and submitter semantics.
+    form.requestSubmit(submitter && submitter.form === form ? submitter : undefined);
+    submittingApproved = false;
   });
 
   // add / edit modal for products, suppliers, users --------------------------
@@ -104,12 +148,5 @@
   builder('saleForm', 'sale');
   builder('poForm', 'purchase');
 
-  // confirmations ------------------------------------------------------------
-  window.voidPrompt = form => {
-    const r = prompt('Reason for voiding this sale?');
-    if (!r) return false;
-    form.void_reason.value = r;
-    return true;
-  };
-  window.confirmRestore = () => confirm('Current business records will be replaced by the backup. Account access is preserved. Continue?');
+  // All confirmations are rendered by the application dialog above.
 })();
