@@ -21,7 +21,7 @@
         <td class="r">
           <a class="link" href="{{ route('sales.receipt', $s) }}" target="_blank">Receipt</a>
           @if(auth()->user()->isOwner() && $s->status === 'completed')
-            <form method="POST" action="{{ route('sales.void', $s) }}" style="display:inline" onsubmit="return voidPrompt(this)">@csrf<input type="hidden" name="void_reason"><button class="link bad">Void</button></form>
+            <form method="POST" action="{{ route('sales.void', $s) }}" style="display:inline" data-confirm="Void this completed sale? Inventory will be restored." data-confirm-title="Void sale" data-confirm-action="Void sale" data-confirm-reason="1">@csrf<input type="hidden" name="void_reason"><button class="link bad">Void</button></form>
           @endif
         </td>
       </tr>
