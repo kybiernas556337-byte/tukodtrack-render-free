@@ -19,9 +19,9 @@
 </section>
 
 <section class="card pad"><h3>Delivery proof records</h3>
-@php $proofs = \\App\\Models\\Delivery::with('receiver')->latest('received_at')->limit(50)->get(); @endphp
+@php $proofs = \App\Models\Delivery::select(['id','received_by','delivery_reference','proof_received_name','proof_confirmed_at','proof_image_mime','received_at'])->with('receiver')->latest('received_at')->limit(50)->get(); @endphp
 <table class="tbl"><thead><tr><th>Delivery</th><th>Received by</th><th>Acknowledged</th><th>Proof</th></tr></thead><tbody>
-@forelse($proofs as $proof)<tr><td>{{ $proof->delivery_reference ?? 'Delivery #'.$proof->id }}</td><td>{{ $proof->proof_received_name ?: ($proof->receiver?->name ?? '—') }}</td><td>{{ $proof->proof_confirmed_at ?? '—' }}</td><td>@if($proof->proof_image_data)<a class="link" href="{{ route('purchases.proof', $proof) }}" target="_blank">View image</a>@else Recorded acknowledgment @endif</td></tr>@empty<tr><td colspan="4">No deliveries recorded yet.</td></tr>@endforelse
+@forelse($proofs as $proof)<tr><td>{{ $proof->delivery_reference ?? 'Delivery #'.$proof->id }}</td><td>{{ $proof->proof_received_name ?: ($proof->receiver?->name ?? '—') }}</td><td>{{ $proof->proof_confirmed_at ?? '—' }}</td><td>@if($proof->proof_image_mime)<a class="link" href="{{ route('purchases.proof', $proof) }}" target="_blank">View image</a>@else Recorded acknowledgment @endif</td></tr>@empty<tr><td colspan="4">No deliveries recorded yet.</td></tr>@endforelse
 </tbody></table></section>
 @foreach($purchases->where('status', '!=', 'received') as $po)
 <x-modal id="recv{{ $po->id }}" title="Receive delivery" sub="{{ $po->reference }} · {{ $po->supplier?->name }}. Stock increases only for what you enter here.">
