@@ -16,11 +16,13 @@ return new class extends Migration {
     $table->string('proof_received_name')->nullable();
     $table->text('proof_notes')->nullable();
     $table->timestamp('proof_confirmed_at')->nullable();
+    $table->longText('proof_image_data')->nullable();
+    $table->string('proof_image_mime', 40)->nullable();
   });
  }
  public function down(): void {
   Schema::table('deliveries', function (Blueprint $table) {
-    $table->dropColumn(['proof_received_name','proof_notes','proof_confirmed_at']);
+    $table->dropColumn(['proof_received_name','proof_notes','proof_confirmed_at','proof_image_data','proof_image_mime']);
   });
   Schema::dropIfExists('custom_roles');
  }
