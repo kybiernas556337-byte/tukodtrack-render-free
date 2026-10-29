@@ -28,6 +28,7 @@ Route::middleware('auth')->group(function () {
     // Owner + Stock personnel
     Route::middleware(EnsureRole::class . ':owner,stock')->group(function () {
         Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+        Route::get('/inventory/report', [InventoryController::class, 'report'])->name('inventory.report');
         Route::get('/inventory/export', [InventoryController::class, 'export'])->name('inventory.export');
         Route::post('/inventory/counts', [InventoryController::class, 'count'])->name('inventory.count');
         Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
