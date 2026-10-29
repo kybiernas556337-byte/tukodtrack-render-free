@@ -17,7 +17,7 @@ class PasswordController extends Controller
     {
         $data = $request->validate([
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'confirmed', Password::min(12)->letters()->mixedCase()->numbers()],
+            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->symbols()],
         ]);
         $user = $request->user();
         $user->forceFill(['password' => Hash::make($data['password'])])->save();
