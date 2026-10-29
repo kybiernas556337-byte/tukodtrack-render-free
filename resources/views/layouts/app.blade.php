@@ -30,7 +30,7 @@
     <nav>
       <div class="nav-h">WORKSPACE</div>
       @foreach($nav as $n)
-        @if(in_array($u->role, $n['roles']))
+        @if(in_array($u->effectiveRole(), $n['roles']))
           <a href="{{ route($n['route']) }}" class="nav-i {{ request()->routeIs($n['on']) ? 'on' : '' }}">
             <x-icon :name="$n['icon']" /> <span>{{ $n['label'] }}</span>
             @if($n['label'] === 'Inventory' && $lowCount)<em>{{ $lowCount }}</em>@endif
