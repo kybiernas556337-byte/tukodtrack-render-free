@@ -75,7 +75,7 @@ class DeploymentWorkflowsTest extends TestCase
             ->assertSessionHasNoErrors()->assertRedirect('/purchases');
         $this->assertSame('partial', $po->fresh()->status);
         $this->assertSame(11.0, $p->fresh()->quantity_on_hand);
-        $this->post("/purchases/{$po->id}/receive", ['received' => [$item->id => 2], 'verified' => '1', 'proof_received_name' => 'Test Receiver'])->assertRedirect('/purchases');
+        $this->post("/purchases/{$po->id}/receive", ['received' => [$item->id => 2], 'verified' => '1', 'proof_received_name' => 'Test Receiver', 'proof_image' => UploadedFile::fake()->image('delivery-second.jpg')])->assertRedirect('/purchases');
         $this->assertSame('received', $po->fresh()->status);
         $this->assertSame(13.0, $p->fresh()->quantity_on_hand);
 
