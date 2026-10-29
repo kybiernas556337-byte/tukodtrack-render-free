@@ -20,12 +20,35 @@ class UtilityController extends Controller
 
     public function backup()
     {
-        $payload = ['app' => 'TukodTrack', 'version' => 1, 'created_at' => now()->toIso8601String(), 'tables' => [],
-            'accounts' => User::get(['name', 'email', 'role', 'is_active'])->toArray()];
-        foreach (self::TABLES as $t) $payload['tables'][$t] = DB::table($t)->get()->map(fn ($r) => (array) $r)->all();
-        ActivityLog::record('Backup downloaded');
-        return response()->streamDownload(fn () => print(json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)),
-            'tukodtrack-backup-' . date('Ymd-His') . '.json', ['Content-Type' => 'application/json']);
+        abort_unless(DB::getDriverName() === 'pgsql', 422, 'SQL export requires PostgreSQL.');
+        $connection = DB::connection()->getConfig();
+        $database = $connection['database'] ?? null;
+        abort_unless($database, 500, 'Database configuration is missing.');
+
+        $command = [
+            'pg_dump', '--format=plain', '--no-owner', '--no-privileges',
+            '--inserts', '--dbname=' . $database,
+        ];
+        $environment = [
+            'PGHOST' => $connection['host'] ?? 'localhost',
+            'PGPORT' => (string) ($connection['port'] ?? '5432'),
+            'PGUSER' => $connection['username'] ?? '',
+            'PGPASSWORD' => $connection['password'] ?? '',
+            'PGSSLMODE' => $connection['sslmode'] ?? 'require',
+        ];
+        $process = new \\Symfony\\Component\\Process\\Process($command, null, $environment);
+        $process->setTimeout(180);
+        $process->run();
+        if (!$process->isSuccessful()) {
+            report(new \\RuntimeException('PostgreSQL SQL export failed: ' . $process->getErrorOutput()));
+            return back()->with('error', 'SQL backup failed. No database records were changed.');
+        }
+        ActivityLog::record('SQL backup downloaded');
+        return response($process->getOutput(), 200, [
+            'Content-Type' => 'application/sql; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="tukodtrack-backup-' . date('Ymd-His') . '.sql"',
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 
     /** Step 1: read the chosen backup and show its date and size. Nothing is changed yet. */
