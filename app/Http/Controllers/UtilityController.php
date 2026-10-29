@@ -34,14 +34,18 @@ class UtilityController extends Controller
             'PGPORT' => (string) ($connection['port'] ?? '5432'),
             'PGUSER' => $connection['username'] ?? '',
             'PGPASSWORD' => $connection['password'] ?? '',
-            'PGSSLMODE' => $connection['sslmode'] ?? 'require',
+            'PGSSLMODE' => 'require',
         ];
         $process = new \Symfony\Component\Process\Process($command, null, $environment);
         $process->setTimeout(180);
         $process->run();
         if (!$process->isSuccessful()) {
-            report(new \RuntimeException('PostgreSQL SQL export failed: ' . $process->getErrorOutput()));
-            return back()->with('error', 'SQL backup failed. No database records were changed.');
+            $error = $process->getErrorOutput();
+            $type = str_contains($error, 'server version mismatch') ? 'client version mismatch' :
+                (str_contains($error, 'password authentication failed') ? 'database authentication' :
+                (str_contains($error, 'could not translate host name') ? 'database hostname' : 'PostgreSQL export error');
+            report(new \RuntimeException('SQL backup failed (' . $type . '). Exit status: ' . $process->getExitCode()));
+            return back()->with('error', 'SQL backup failed (' . $type . '). No database records were changed.');
         }
         ActivityLog::record('SQL backup downloaded');
         return response($process->getOutput(), 200, [
