@@ -137,4 +137,16 @@ class DeploymentWorkflowsTest extends TestCase
         $this->post('/sample-data')->assertForbidden();
         $this->assertSame(0, Product::count());
     }
+    public function test_business_reports_download_pdf_files(): void
+    {
+        $this->actingAs($this->owner());
+        $this->product();
+        foreach (['/reports/export?tab=summary', '/reports/export?tab=inventory',
+            '/reports/export?tab=activity', '/inventory/export', '/products/export'] as $uri) {
+            $response = $this->get($uri)->assertOk()->assertHeader('content-type', 'application/pdf');
+            $this->assertStringStartsWith('%PDF-1.4', $response->getContent(), $uri);
+            $this->assertStringContainsString('.pdf', $response->headers->get('content-disposition'));
+        }
+    }
+
 }
