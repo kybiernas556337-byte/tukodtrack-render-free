@@ -12,7 +12,7 @@
   <div class="toolbar" style="flex-wrap:wrap">
     <strong>Inventory status report</strong>
     <span class="muted">Value is quantity on hand × selling price; it is not inventory cost.</span>
-    <a class="btn ghost" href="{{ route('inventory.export') }}" style="margin-left:auto">Export CSV</a>
+    <a class="btn ghost" href="{{ route('inventory.export') }}" style="margin-left:auto">Download PDF</a>
   </div>
   <table class="tbl"><thead><tr><th>Code</th><th>Product</th><th>Category</th><th class="r">Available</th><th class="r">Reorder level</th><th class="r">Retail value</th><th>Status</th></tr></thead><tbody>
   @forelse($products as $p)
