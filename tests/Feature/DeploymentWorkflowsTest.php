@@ -133,7 +133,7 @@ class DeploymentWorkflowsTest extends TestCase
         $this->app->instance('env', 'production');
         $this->actingAs($this->owner());
         $this->get('/overview')->assertOk()->assertDontSee('Load sample data');
-        $this->withoutMiddleware(\\Illuminate\\Foundation\\Http\\Middleware\\ValidateCsrfToken::class);
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
         $this->post('/sample-data')->assertForbidden();
         $this->assertSame(0, Product::count());
     }
