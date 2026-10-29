@@ -34,6 +34,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
         Route::get('/suppliers/{supplier}', [SupplierController::class, 'show'])->name('suppliers.show');
         Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
+        Route::get('/purchases/delivery-proof/{delivery}', [PurchaseController::class, 'proof'])->name('purchases.proof');
         Route::post('/purchases/{purchase}/receive', [PurchaseController::class, 'receive'])->name('purchases.receive');
     });
 
