@@ -52,6 +52,6 @@ class ReportController extends Controller
         }
         $rows = Sale::with('cashier')->whereBetween('sale_date', [$from, $to])->latest('sale_date')->get()
             ->map(fn ($s) => [$s->receipt_no, dt($s->sale_date), $s->cashier?->name, $s->total_amount, $s->amount_paid, $s->change_amount, $s->status]);
-        return ReportPdf::download($name, 'Sales Summary Report', ['Receipt', 'Date', 'Cashier', 'Total', 'Paid', 'Change', 'Status'], $rows, ['Period' => $from->toDateString() . ' to ' . $to->toDateString(), 'Net sales' => (string) (clone $sales)->where('status', 'completed')->sum('total_amount'), 'Generated' => now()->format('Y-m-d H:i'), 'Prepared by' => auth()->user()->name]);
+        return ReportPdf::download($name, 'Sales Summary Report', ['Receipt', 'Date', 'Cashier', 'Total', 'Paid', 'Change', 'Status'], $rows, ['Period' => $from->toDateString() . ' to ' . $to->toDateString(), 'Net sales' => (string) Sale::whereBetween('sale_date', [$from, $to])->where('status', 'completed')->sum('total_amount'), 'Generated' => now()->format('Y-m-d H:i'), 'Prepared by' => auth()->user()->name]);
     }
 }
