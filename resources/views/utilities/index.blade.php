@@ -4,10 +4,10 @@
 <x-page-head title="Utilities" sub="Keep a backup and review the record of store activity." />
 <div class="two-eq">
   <section class="card"><x-icon name="download" :size="28" /><h3>Download a store backup</h3>
-    <p>Save products, transactions, stock history, and account records in a JSON backup file.</p>
+    <p>Download a PostgreSQL SQL backup containing the database structure and records. Keep this file private.</p>
     <a class="btn" href="{{ route('utilities.backup') }}"><x-icon name="download" :size="18" /> Download backup</a></section>
   <section class="card"><x-icon name="refresh" :size="28" /><h3>Restore business records</h3>
-    <p>Select a backup from this store. You will see its date and contents first, then confirm with your password. Current business records are replaced; account access is preserved.</p>
+    <p>Legacy JSON restore only: select an existing TukodTrack JSON backup, review its date and contents, and confirm with your password. SQL backups must be restored using PostgreSQL administration tools; uploading SQL files here is not supported.</p>
     <form method="POST" action="{{ route('utilities.restore.preview') }}" enctype="multipart/form-data">
       @csrf <input type="file" name="backup" id="backupFile" accept=".json,application/json" hidden onchange="this.form.submit()">
       <button type="button" class="btn ghost" onclick="document.getElementById('backupFile').click()">Select backup file</button>
