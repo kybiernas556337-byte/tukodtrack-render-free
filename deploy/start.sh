@@ -3,7 +3,8 @@ set -eu
 : "${APP_KEY:?Set APP_KEY in Render}"
 export APP_URL="${APP_URL:-${RENDER_EXTERNAL_URL:-}}"
 : "${APP_URL:?Set APP_URL to your HTTPS website address}"
-: "${DB_URL:?Set DB_URL to the Neon PostgreSQL connection string}"
+export DB_URL="${DB_URL:-${DATABASE_URL:-}}"
+: "${DB_URL:?Set DB_URL or DATABASE_URL to your Neon staging PostgreSQL connection string}"
 export DB_CONNECTION=pgsql
 export APP_TIMEZONE="${APP_TIMEZONE:-Asia/Manila}"
 sed -i "s/^Listen 80$/Listen ${PORT:-10000}/" /etc/apache2/ports.conf
