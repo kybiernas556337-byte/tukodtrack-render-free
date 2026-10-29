@@ -60,7 +60,6 @@
             <span class="account-role">{{ $u->roleLabel() }}</span>
           </div>
         </div>
-        <a class="account-password-link" href="{{ route('password.edit') }}" aria-label="Change your password">Change password</a>
       </div>
     </header>
 
