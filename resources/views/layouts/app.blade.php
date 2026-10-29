@@ -54,7 +54,7 @@
       <div class="crumb"><span>Store workspace</span><span>›</span><b>@yield('crumb')</b></div>
       <div class="who">
         <span class="av">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
-        <div><b>{{ $u->name }}</b><small>{{ $u->roleLabel() }}</small></div>
+        <div><b>{{ $u->name }}</b><small>{{ $u->roleLabel() }}</small><a href="{{ route('password.edit') }}" style="font-size:12px;text-decoration:underline">Change password</a></div>
       </div>
     </header>
 
