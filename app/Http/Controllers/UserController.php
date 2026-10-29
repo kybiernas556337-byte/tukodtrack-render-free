@@ -5,6 +5,7 @@ use App\Models\{ActivityLog, User, CustomRole};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -29,7 +30,7 @@ class UserController extends Controller
     {
         $d = $r->validate([
             'name' => 'required|string|max:150', 'email' => 'required|email|max:150|unique:users,email',
-            'role' => ['required', Rule::in(array_merge(array_keys(User::ROLES), CustomRole::pluck('slug')->all()))], 'password' => 'required|string|min:8|max:100',
+            'role' => ['required', Rule::in(array_merge(array_keys(User::ROLES), CustomRole::pluck('slug')->all()))], 'password' => ['required', 'string', 'max:100', Password::min(8)->mixedCase()->symbols()],
         ]);
         $u = User::create(['name' => $d['name'], 'email' => $d['email'], 'role' => $d['role'],
             'password' => Hash::make($d['password']), 'is_active' => $r->boolean('is_active')]);
@@ -41,7 +42,7 @@ class UserController extends Controller
     {
         $d = $r->validate([
             'name' => 'required|string|max:150', 'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')->ignore($user->id)],
-            'role' => ['required', Rule::in(array_keys(User::ROLES))], 'password' => 'nullable|string|min:8|max:100',
+            'role' => ['required', Rule::in(array_merge(array_keys(User::ROLES), CustomRole::pluck('slug')->all()))], 'password' => ['nullable', 'string', 'max:100', Password::min(8)->mixedCase()->symbols()],
         ]);
         $self = $user->id === auth()->id();   // you cannot demote or deactivate yourself
         $user->fill([
