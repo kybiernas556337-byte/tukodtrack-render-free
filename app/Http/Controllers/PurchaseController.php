@@ -58,8 +58,9 @@ class PurchaseController extends Controller
             'delivery_reference' => 'nullable|string|max:60', 'received' => 'required|array', 'received.*' => 'nullable|numeric|min:0',
             'verified' => 'accepted', 'remarks' => 'nullable|string|max:150',
             'proof_received_name' => 'required|string|max:150', 'proof_notes' => 'nullable|string|max:500',
-            'proof_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ], ['verified.accepted' => 'Please confirm that you verified the delivery before posting it.']);
+            'proof_image' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ], ['verified.accepted' => 'Please confirm that you verified the delivery before posting it.',
+            'proof_image.required' => 'Upload a photo of the signed delivery receipt before receiving inventory.']);
         try {
             DB::transaction(function () use ($d, $purchase, $r) {
                 $delivery = null;
