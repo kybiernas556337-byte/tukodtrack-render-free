@@ -36,11 +36,11 @@ class UtilityController extends Controller
             'PGPASSWORD' => $connection['password'] ?? '',
             'PGSSLMODE' => $connection['sslmode'] ?? 'require',
         ];
-        $process = new \\Symfony\\Component\\Process\\Process($command, null, $environment);
+        $process = new \Symfony\\Component\\Process\\Process($command, null, $environment);
         $process->setTimeout(180);
         $process->run();
         if (!$process->isSuccessful()) {
-            report(new \\RuntimeException('PostgreSQL SQL export failed: ' . $process->getErrorOutput()));
+            report(new \RuntimeException('PostgreSQL SQL export failed: ' . $process->getErrorOutput()));
             return back()->with('error', 'SQL backup failed. No database records were changed.');
         }
         ActivityLog::record('SQL backup downloaded');
