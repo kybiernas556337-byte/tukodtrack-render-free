@@ -42,8 +42,8 @@
         <td><span class="badge {{ ['approved' => 'ok', 'rejected' => 'bad', 'pending' => 'warn'][$c->status] }}">{{ ucfirst($c->status) }}</span></td>
         @if($owner)<td class="r">
           @if($c->status === 'pending')
-            <form method="POST" action="{{ route('inventory.approve', $c) }}" style="display:inline">@csrf<button class="link">Approve</button></form>
-            <form method="POST" action="{{ route('inventory.reject', $c) }}" style="display:inline">@csrf<button class="link bad">Reject</button></form>
+            <form method="POST" action="{{ route('inventory.approve', $c) }}" style="display:inline" data-confirm="Approve this count and update stock?">@csrf<button class="link">Approve</button></form>
+            <form method="POST" action="{{ route('inventory.reject', $c) }}" style="display:inline" data-confirm="Reject this count without changing stock?">@csrf<button class="link bad">Reject</button></form>
           @endif</td>@endif
       </tr>
     @endforeach
@@ -64,7 +64,7 @@
 </section>
 
 <x-modal id="countModal" title="Record physical count" sub="The owner reviews counts before inventory changes.">
-  <form method="POST" action="{{ route('inventory.count') }}">
+  <form method="POST" action="{{ route('inventory.count') }}" data-confirm="Submit this physical count for review?">
     @csrf
     <div class="f"><label>Product</label>
       <select class="input" name="product_id" required><option value="">Choose product</option>
