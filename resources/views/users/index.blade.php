@@ -37,7 +37,7 @@
     @csrf <input type="hidden" name="_method" value="POST">
     <div class="f"><label>Full name</label><input class="input" name="name" required></div>
     <div class="f"><label>Sign-in email</label><input class="input" name="email" type="email" required></div>
-    <div class="f"><label>Password <small class="muted" data-edit-only hidden>(leave blank to keep the current one)</small></label><input class="input" name="password" type="password" minlength="8" autocomplete="new-password" required></div>
+    <div class="f"><label>Password <small class="muted" data-edit-only hidden>(leave blank to keep the current one)</small></label><input class="input" name="password" type="password" minlength="8" autocomplete="new-password" aria-describedby="account-password-rules" required><small id="account-password-rules" class="muted">At least 8 characters, one uppercase letter, one lowercase letter, and one special symbol (!, @, #, etc.).</small>></div>
     <div class="f"><label>Role</label><select class="input" name="role">
       @foreach($roles as $k => $label)<option value="{{ $k }}" @selected($k === 'cashier')>{{ $label }}</option>@endforeach</select></div>
     <div class="switch"><span>Active account</span><input type="checkbox" name="is_active" value="1" checked></div>
