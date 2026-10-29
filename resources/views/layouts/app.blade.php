@@ -45,7 +45,7 @@
       @endif
     </nav>
     <div class="store"><x-icon name="warehouse" :size="26" /><div><b>Lesser Hardware</b><small>Cabantian, Davao City</small></div></div>
-    <form method="POST" action="{{ route('logout') }}">@csrf<button class="signout"><x-icon name="logout" /> Sign out</button></form>
+    <form method="POST" action="{{ route('logout') }}" data-confirm="Are you sure you want to log out of TukodTrack?">@csrf<button class="signout"><x-icon name="logout" /> Sign out</button></form>
   </aside>
 
   <div class="main">
