@@ -186,3 +186,16 @@ dialog::backdrop{background:rgba(18,28,24,.55)}
 .auth-success{background:#eef8ec;border-color:#c9e6c6;color:#24633b}
 @media(max-width:860px){.auth-split{display:block}.auth-feature{display:none}.auth-form-side{min-height:100vh;padding:35px 24px}.auth-mobile-brand{display:flex}.auth-form-wrap h2{font-size:30px}}
 @media(prefers-reduced-motion:reduce){.auth-input{transition:none}}
+
+/* Refined top-bar account details */
+.account-area{margin-left:auto;display:flex;align-items:center;gap:18px;min-width:0}
+.account-identity{display:flex;align-items:center;gap:11px;min-width:0}
+.account-identity .av{flex:0 0 40px;width:40px;height:40px;font-size:15px}
+.account-details{display:flex;flex-direction:column;gap:3px;min-width:0}
+.account-name{color:#17382d;font-size:13px;font-weight:750;line-height:1.15;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.account-role{color:#6c7a74;font-size:12px;line-height:1.2;white-space:nowrap}
+.account-password-link{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;white-space:nowrap;font-size:12px;font-weight:650;color:#245b41;background:#eef5ec;border:1px solid #dae8d9;padding:9px 13px;border-radius:9px;text-decoration:none}
+.account-password-link:hover{background:#e2efdf;border-color:#b9d9ba}
+.account-password-link:focus-visible{outline:2px solid #245b41;outline-offset:3px}
+@media(max-width:820px){.top{padding:0 14px}.account-area{gap:8px}.account-name{max-width:115px}.account-password-link{padding:8px 10px}}
+@media(max-width:600px){.account-details{display:none}.account-password-link{font-size:11px}.crumb span:first-child,.crumb span:nth-child(2){display:none}}
