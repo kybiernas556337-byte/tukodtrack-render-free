@@ -18,6 +18,8 @@ jobs:
         run: find app database routes -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Validate SQL restore helper syntax
         run: bash -n scripts/restore-sql-to-empty-db.sh
+      - name: Validate browser JavaScript syntax
+        run: node --check public/js/tukod.js
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist
       - name: Laravel test suite
