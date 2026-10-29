@@ -1,7 +1,11 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Models\{ActivityLog, Product, StockAdjustment, StockMovement};
+use App\Models\ActivityLog;
+use App\Models\Product;
+use App\Models\StockAdjustment;
+use App\Models\StockMovement;
 use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,22 +28,30 @@ class InventoryController extends Controller
                     ->orWhereHas('product', fn ($p) => $p->whereLike('name', "%$q%")->orWhereLike('code', "%$q%"))))
                 ->latest()->latest('id')->limit(300)->get();
         }
+
         return view('inventory.index', $data);
     }
 
     private function levels(Request $r)
     {
         $q = trim((string) $r->q);
+
         return Product::with('category')->active()
             ->when($q, fn ($x) => $x->where(fn ($w) => $w->whereLike('name', "%$q%")->orWhereLike('code', "%$q%")))
             ->when($r->filter === 'low', fn ($x) => $x->low())
             ->orderBy('name')->get();
     }
 
+    public function report(Request $r)
+    {
+        return view('inventory.report', ['rows' => $this->levels($r), 'q' => $r->q, 'filter' => $r->filter]);
+    }
+
     public function export(Request $r)
     {
-        $rows = $this->levels($r)->map(fn ($p) => [$p->code, $p->name, $p->base_unit, $p->selling_price, $p->quantity_on_hand, $p->reorder_level, $p->status()]);
-        return csv_download('stock-levels-' . date('Ymd') . '.csv', ['Code', 'Product', 'Unit', 'Price', 'Available', 'Reorder at', 'Status'], $rows);
+        $rows = $this->levels($r)->map(fn ($p) => [$p->code, $p->name, $p->base_unit, $p->selling_price, $p->quantity_on_hand, $p->reorder_level, $p->status(), round($p->quantity_on_hand * $p->selling_price, 2)]);
+
+        return csv_download('stock-levels-'.date('Ymd').'.csv', ['Code', 'Product', 'Unit', 'Price', 'Available', 'Reorder at', 'Status', 'Retail stock value (not cost)'], $rows);
     }
 
     /** Stock personnel submit a count; it does not change stock until the owner approves. */
@@ -56,13 +68,16 @@ class InventoryController extends Controller
             'counted_qty' => $d['counted_qty'], 'quantity_delta' => $delta, 'reason' => $d['reason'] ?? null,
             'status' => 'pending', 'requested_at' => now(),
         ]);
-        ActivityLog::record('Physical count submitted', $p->code . ' · counted ' . qty($d['counted_qty']));
+        ActivityLog::record('Physical count submitted', $p->code.' · counted '.qty($d['counted_qty']));
+
         return redirect()->route('inventory.index', ['tab' => 'counts'])->with('success', 'Saved successfully');
     }
 
     public function approve(StockAdjustment $adjustment)
     {
-        if ($adjustment->status !== 'pending') return back()->with('error', 'This count was already reviewed.');
+        if ($adjustment->status !== 'pending') {
+            return back()->with('error', 'This count was already reviewed.');
+        }
         DB::transaction(function () use ($adjustment) {
             $p = Product::lockForUpdate()->findOrFail($adjustment->product_id);
             $delta = round($adjustment->counted_qty - $p->quantity_on_hand, 3);   // difference against the balance today
@@ -73,16 +88,20 @@ class InventoryController extends Controller
                     'reason' => $adjustment->reason ?: 'Approved physical count',
                 ]);
             }
-            ActivityLog::record('Count approved', $p->code . ' · ' . ($delta >= 0 ? '+' : '') . qty($delta));
+            ActivityLog::record('Count approved', $p->code.' · '.($delta >= 0 ? '+' : '').qty($delta));
         });
+
         return back()->with('success', 'Count approved and stock updated.');
     }
 
     public function reject(StockAdjustment $adjustment)
     {
-        if ($adjustment->status !== 'pending') return back()->with('error', 'This count was already reviewed.');
+        if ($adjustment->status !== 'pending') {
+            return back()->with('error', 'This count was already reviewed.');
+        }
         $adjustment->update(['status' => 'rejected', 'approved_by' => auth()->id(), 'approved_at' => now()]);
         ActivityLog::record('Count rejected', $adjustment->product->code);
+
         return back()->with('success', 'Count rejected. Stock was not changed.');
     }
 }

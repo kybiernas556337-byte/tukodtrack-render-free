@@ -11,7 +11,11 @@
     if (e.target.closest('[data-reload]')) location.reload();
     if (e.target.closest('[data-print]')) window.print();
   });
-  document.querySelectorAll('[data-toast]').forEach(t => setTimeout(() => t.remove(), 6000));
+  document.querySelectorAll('[data-toast], .alert').forEach(t => {
+    t.setAttribute('role', 'alert');
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'link'; b.textContent = 'Dismiss';
+    b.addEventListener('click', () => t.remove()); t.append(b);
+  });
 
   // add / edit modal for products, suppliers, users --------------------------
   function crudModal(id, key, fields, titles) {
@@ -100,12 +104,37 @@
   builder('saleForm', 'sale');
   builder('poForm', 'purchase');
 
-  // confirmations ------------------------------------------------------------
-  window.voidPrompt = form => {
-    const r = prompt('Reason for voiding this sale?');
-    if (!r) return false;
-    form.void_reason.value = r;
-    return true;
-  };
-  window.confirmRestore = () => confirm('Current business records will be replaced by the backup. Account access is preserved. Continue?');
+  // Shared confirmation dialog. Cancel leaves the original form intact.
+  const dialog = document.createElement('dialog');
+  dialog.className = 'confirmation';
+  dialog.setAttribute('aria-labelledby', 'confirmationTitle');
+  dialog.innerHTML = '<form method="dialog"><h2 id="confirmationTitle">Confirm action</h2><p data-message></p><div data-reason hidden><label for="voidReason">Reason for voiding</label><input id="voidReason" class="input" maxlength="255"></div><div class="mfoot"><button class="btn ghost" value="cancel" formnovalidate>Cancel</button><button class="btn" value="confirm">Confirm</button></div></form>';
+  document.body.append(dialog);
+  let pending = null;
+  document.addEventListener('submit', e => {
+    const f = e.target;
+    if (!f.matches('form[data-confirm]') || f.dataset.confirmed === 'yes') return;
+    e.preventDefault(); pending = f;
+    let message = f.dataset.confirm;
+    if (f.id === 'saleForm') message += ' Total: ' + f.querySelector('[data-total]').textContent + '. Amount received: ₱' + f.elements.amount_paid.value;
+    dialog.querySelector('[data-message]').textContent = message;
+    const reason = dialog.querySelector('#voidReason');
+    reason.value = ''; reason.required = f.hasAttribute('data-void');
+    dialog.querySelector('[data-reason]').hidden = !reason.required;
+    dialog.returnValue = ''; dialog.showModal();
+  });
+  dialog.addEventListener('close', () => {
+    if (dialog.returnValue === 'confirm' && pending) {
+      const f = pending;
+      if (f.hasAttribute('data-void')) {
+        const reason = dialog.querySelector('#voidReason').value.trim();
+        if (!reason) { dialog.showModal(); return; }
+        f.elements.void_reason.value = reason;
+      }
+      f.dataset.confirmed = 'yes';
+      f.requestSubmit();
+      delete f.dataset.confirmed;
+    }
+    pending = null;
+  });
 })();

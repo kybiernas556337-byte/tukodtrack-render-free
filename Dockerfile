@@ -7,9 +7,14 @@ COPY vite.config.js ./
 RUN npm run build
 
 FROM php:8.2-apache-bookworm
-RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev libonig-dev libzip-dev unzip \
+RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev libonig-dev libzip-dev unzip curl ca-certificates gnupg \
     && docker-php-ext-install pdo_pgsql mbstring zip bcmath opcache \
     && a2enmod rewrite \
+    && rm -rf /var/lib/apt/lists/*
+# PostgreSQL 18 client supports Neon servers through version 18.
+RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update && apt-get install -y --no-install-recommends postgresql-client-18 \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
