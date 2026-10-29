@@ -13,6 +13,8 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/profile/password', [\App\Http\Controllers\PasswordController::class, 'edit'])->name('password.edit');
+    Route::post('/profile/password', [\App\Http\Controllers\PasswordController::class, 'update'])->name('password.update')->middleware('throttle:6,1');
     Route::get('/overview', [DashboardController::class, 'index'])->name('overview');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 
@@ -26,11 +28,13 @@ Route::middleware('auth')->group(function () {
     // Owner + Stock personnel
     Route::middleware(EnsureRole::class . ':owner,stock')->group(function () {
         Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+        Route::get('/inventory/report', [InventoryController::class, 'report'])->name('inventory.report');
         Route::get('/inventory/export', [InventoryController::class, 'export'])->name('inventory.export');
         Route::post('/inventory/counts', [InventoryController::class, 'count'])->name('inventory.count');
         Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
         Route::get('/suppliers/{supplier}', [SupplierController::class, 'show'])->name('suppliers.show');
         Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
+        Route::get('/purchases/delivery-proof/{delivery}', [PurchaseController::class, 'proof'])->name('purchases.proof');
         Route::post('/purchases/{purchase}/receive', [PurchaseController::class, 'receive'])->name('purchases.receive');
     });
 
@@ -55,6 +59,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/user-access', [UserController::class, 'index'])->name('users.index');
         Route::post('/user-access', [UserController::class, 'store'])->name('users.store');
+        Route::post('/user-access/roles', [UserController::class, 'storeRole'])->name('users.roles.store');
         Route::put('/user-access/{user}', [UserController::class, 'update'])->name('users.update');
 
         Route::get('/utilities', [UtilityController::class, 'index'])->name('utilities.index');

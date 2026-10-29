@@ -14,7 +14,13 @@ class User extends Authenticatable
     protected $hidden = ['password', 'remember_token'];
     protected $casts = ['is_active' => 'boolean', 'email_verified_at' => 'datetime'];
 
-    public function roleLabel(): string { return self::ROLES[$this->role] ?? $this->role; }
+    public function effectiveRole(): string {
+        if (isset(self::ROLES[$this->role])) return $this->role;
+        return CustomRole::where('slug', $this->role)->value('base_role') ?? 'none';
+    }
+    public function roleLabel(): string {
+        return self::ROLES[$this->role] ?? CustomRole::where('slug', $this->role)->value('name') ?? $this->role;
+    }
     public function isOwner(): bool { return $this->role === 'owner'; }
-    public function hasRole(string ...$r): bool { return in_array($this->role, $r, true); }
+    public function hasRole(string ...$r): bool { return in_array($this->effectiveRole(), $r, true); }
 }

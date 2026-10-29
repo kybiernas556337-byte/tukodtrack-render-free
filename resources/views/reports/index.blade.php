@@ -14,7 +14,7 @@
   <div><label>From</label><input class="input" type="date" name="from" value="{{ $from->toDateString() }}" onchange="this.form.submit()"></div>
   <div><label>To</label><input class="input" type="date" name="to" value="{{ $to->toDateString() }}" onchange="this.form.submit()"></div>
   <button type="button" class="btn ghost" data-print><x-icon name="print" :size="18" /> Print report</button>
-  <a class="btn ghost" href="{{ route('reports.export', $qs + ['tab' => $tab]) }}"><x-icon name="download" :size="18" /> Export CSV</a>
+  <a class="btn ghost" href="{{ route('reports.export', $qs + ['tab' => $tab]) }}"><x-icon name="download" :size="18" /> Download PDF</a>
 </form>
 
 <div class="tabs">

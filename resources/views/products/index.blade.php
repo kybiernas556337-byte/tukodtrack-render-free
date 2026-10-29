@@ -9,7 +9,7 @@
 <section class="card">
   <form class="toolbar" method="GET">
     <div class="search"><x-icon name="search" :size="18" /><input class="input" name="q" value="{{ $q }}" placeholder="Search name, code, or category"></div>
-    @if($owner)<a class="btn ghost" style="margin-left:auto" href="{{ route('products.export') }}"><x-icon name="download" :size="18" /> Export CSV</a>@endif
+    @if($owner)<a class="btn ghost" style="margin-left:auto" href="{{ route('products.export') }}"><x-icon name="download" :size="18" /> Download PDF</a>@endif
   </form>
   @if($products->isEmpty())<x-empty />@else
   <table class="tbl"><thead><tr><th>Product</th><th>Unit</th><th>Price</th><th>Available</th><th>Reorder at</th><th>Status</th>@if($owner)<th>Actions</th>@endif</tr></thead><tbody>

@@ -1,6 +1,6 @@
 @php $picker = \App\Models\Product::picker(); @endphp
 <x-modal id="saleModal" title="New sale" sub="Add products and enter the payment received." wide>
-  <form method="POST" action="{{ route('sales.store') }}" id="saleForm" data-products="{{ json_encode($picker) }}">
+  <form method="POST" action="{{ route('sales.store') }}" id="saleForm" data-confirm="Confirm sale? This will finalize payment and deduct stock." data-products="{{ json_encode($picker) }}">
     @csrf
     <input class="input" list="saleList" data-search placeholder="Search product name or code" autocomplete="off">
     <datalist id="saleList">@foreach($picker as $p)<option value="{{ $p['code'] }} — {{ $p['name'] }}">@endforeach</datalist>
@@ -10,6 +10,6 @@
       <div style="width:263px"><label for="amount_paid">Amount received (PHP)</label>
         <input class="input" id="amount_paid" name="amount_paid" type="number" step="0.01" min="0" placeholder="0.00"></div>
     </div>
-    <div class="mfoot"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn" data-submit disabled>Complete sale</button></div>
+    <div class="mfoot"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn" data-submit disabled>Review & complete sale</button></div>
   </form>
 </x-modal>

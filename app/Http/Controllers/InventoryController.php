@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{ActivityLog, Product, StockAdjustment, StockMovement};
 use App\Services\StockService;
+use App\Services\ReportPdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -27,6 +28,17 @@ class InventoryController extends Controller
         return view('inventory.index', $data);
     }
 
+    public function report()
+    {
+        $products = Product::with('category')->active()->orderBy('name')->get();
+        return view('inventory.report', [
+            'products' => $products,
+            'low' => $products->filter(fn ($p) => $p->quantity_on_hand <= $p->reorder_level)->count(),
+            'out' => $products->filter(fn ($p) => $p->quantity_on_hand <= 0)->count(),
+            'value' => $products->sum(fn ($p) => $p->quantity_on_hand * $p->selling_price),
+        ]);
+    }
+
     private function levels(Request $r)
     {
         $q = trim((string) $r->q);
@@ -39,7 +51,7 @@ class InventoryController extends Controller
     public function export(Request $r)
     {
         $rows = $this->levels($r)->map(fn ($p) => [$p->code, $p->name, $p->base_unit, $p->selling_price, $p->quantity_on_hand, $p->reorder_level, $p->status()]);
-        return csv_download('stock-levels-' . date('Ymd') . '.csv', ['Code', 'Product', 'Unit', 'Price', 'Available', 'Reorder at', 'Status'], $rows);
+        return ReportPdf::download('stock-levels-' . date('Ymd') . '.pdf', 'Stock Levels Report', ['Code', 'Product', 'Unit', 'Price', 'Available', 'Reorder at', 'Status'], $rows, ['Generated' => now()->format('Y-m-d H:i'), 'Prepared by' => auth()->user()->name]);
     }
 
     /** Stock personnel submit a count; it does not change stock until the owner approves. */

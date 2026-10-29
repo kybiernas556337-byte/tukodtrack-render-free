@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{ActivityLog, Category, Product};
 use App\Services\StockService;
+use App\Services\ReportPdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -74,6 +75,6 @@ class ProductController extends Controller
         $rows = Product::with('category')->orderBy('name')->get()->map(fn ($p) => [
             $p->code, $p->name, $p->category?->name, $p->base_unit, $p->selling_price, $p->quantity_on_hand, $p->reorder_level, $p->status(),
         ]);
-        return csv_download('products-' . date('Ymd') . '.csv', ['Code', 'Product', 'Category', 'Unit', 'Price', 'Available', 'Reorder at', 'Status'], $rows);
+        return ReportPdf::download('products-' . date('Ymd') . '.pdf', 'Product Catalog Report', ['Code', 'Product', 'Category', 'Unit', 'Price', 'Available', 'Reorder at', 'Status'], $rows, ['Generated' => now()->format('Y-m-d H:i'), 'Prepared by' => auth()->user()->name]);
     }
 }
