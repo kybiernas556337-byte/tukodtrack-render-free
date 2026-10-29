@@ -80,6 +80,22 @@
     </main>
   </div>
 </div>
+  <dialog id="actionConfirmDialog" class="app-confirm-dialog" aria-labelledby="actionConfirmTitle" aria-describedby="actionConfirmMessage">
+    <div class="app-confirm-content">
+      <div class="app-confirm-icon" aria-hidden="true">?</div>
+      <h2 id="actionConfirmTitle">Confirm action</h2>
+      <p id="actionConfirmMessage"></p>
+      <div class="app-confirm-reason" id="actionConfirmReasonWrap" hidden>
+        <label for="actionConfirmReason">Reason for voiding <span class="required">*</span></label>
+        <textarea id="actionConfirmReason" class="input" maxlength="255" rows="3" placeholder="Enter a reason for the voided transaction"></textarea>
+        <small id="actionConfirmReasonError" class="err" hidden>Please enter a reason.</small>
+      </div>
+      <div class="app-confirm-buttons">
+        <button type="button" class="btn ghost" id="actionConfirmCancel">Cancel</button>
+        <button type="button" class="btn" id="actionConfirmAccept">Confirm</button>
+      </div>
+    </div>
+  </dialog>
 <script src="{{ asset('js/tukod.js') }}"></script>
 </body>
 </html>
