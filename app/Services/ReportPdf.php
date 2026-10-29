@@ -82,7 +82,7 @@ class ReportPdf
         }
         // A4 landscape, with standard fonts.
         foreach ($pages as &$page) {
-            foreach ($page as &$line) $line[4] = min(550, $line[4] * 0.65);
+            foreach ($page as &$line) $line[4] = 550 - (785 - $line[4]) * 0.65;
         }
         unset($page, $line);
         // Recreate streams using landscape page coordinates.
