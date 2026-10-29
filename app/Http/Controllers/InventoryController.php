@@ -27,6 +27,17 @@ class InventoryController extends Controller
         return view('inventory.index', $data);
     }
 
+    public function report()
+    {
+        $products = Product::with('category')->active()->orderBy('name')->get();
+        return view('inventory.report', [
+            'products' => $products,
+            'low' => $products->filter(fn ($p) => $p->quantity_on_hand <= $p->reorder_level)->count(),
+            'out' => $products->filter(fn ($p) => $p->quantity_on_hand <= 0)->count(),
+            'value' => $products->sum(fn ($p) => $p->quantity_on_hand * $p->selling_price),
+        ]);
+    }
+
     private function levels(Request $r)
     {
         $q = trim((string) $r->q);
