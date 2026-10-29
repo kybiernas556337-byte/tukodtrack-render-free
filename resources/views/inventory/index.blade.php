@@ -3,6 +3,7 @@
 @section('content')
 @php $owner = auth()->user()->isOwner(); @endphp
 <x-page-head title="Inventory" sub="Track stock movements and reconcile physical counts.">
+  <a class="btn ghost" href="{{ route('inventory.report') }}">Inventory report</a>
   <button class="btn" data-open="#countModal"><x-icon name="clipboard" :size="16" /> Record count</button>
 </x-page-head>
 
