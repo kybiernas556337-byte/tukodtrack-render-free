@@ -18,9 +18,14 @@
   </tbody></table>@endif
 </section>
 
+<section class="card pad"><h3>Delivery proof records</h3>
+@php $proofs = \\App\\Models\\Delivery::with('receiver')->latest('received_at')->limit(50)->get(); @endphp
+<table class="tbl"><thead><tr><th>Delivery</th><th>Received by</th><th>Acknowledged</th><th>Proof</th></tr></thead><tbody>
+@forelse($proofs as $proof)<tr><td>{{ $proof->delivery_reference ?? 'Delivery #'.$proof->id }}</td><td>{{ $proof->proof_received_name ?: ($proof->receiver?->name ?? '—') }}</td><td>{{ $proof->proof_confirmed_at ?? '—' }}</td><td>@if($proof->proof_image_data)<a class="link" href="{{ route('purchases.proof', $proof) }}" target="_blank">View image</a>@else Recorded acknowledgment @endif</td></tr>@empty<tr><td colspan="4">No deliveries recorded yet.</td></tr>@endforelse
+</tbody></table></section>
 @foreach($purchases->where('status', '!=', 'received') as $po)
 <x-modal id="recv{{ $po->id }}" title="Receive delivery" sub="{{ $po->reference }} · {{ $po->supplier?->name }}. Stock increases only for what you enter here.">
-  <form method="POST" action="{{ route('purchases.receive', $po) }}" data-confirm="Confirm the delivery and update inventory?">
+  <form method="POST" enctype="multipart/form-data" action="{{ route('purchases.receive', $po) }}" data-confirm="Confirm the delivery and update inventory?">
     @csrf
     <div class="f"><label>Delivery reference (optional)</label><input class="input" name="delivery_reference" maxlength="60" placeholder="Delivery receipt no."></div>
     <table class="tbl ln"><thead><tr><th>Product</th><th>Ordered</th><th>Received so far</th><th>Receiving now</th></tr></thead><tbody>
@@ -30,6 +35,7 @@
       @endforeach
     </tbody></table>
     <div class="f" style="margin-top:14px"><label>Name of person confirming receipt</label><input class="input" name="proof_received_name" maxlength="150" required placeholder="Recipient or verifying staff"></div>
+    <div class="f"><label>Photo of signed delivery receipt (optional, up to 2 MB)</label><input type="file" class="input" name="proof_image" accept="image/jpeg,image/png,image/webp"></div>
     <div class="f"><label>Proof of delivery notes</label><input class="input" name="proof_notes" maxlength="500" placeholder="Delivery receipt number or verification details"></div>
     <div class="f"><label>Delivery remarks (optional)</label><input class="input" name="remarks" maxlength="150" placeholder="e.g. 2 bags damaged, returned to driver"></div>
     <label style="display:flex;gap:10px;align-items:flex-start;font-weight:500"><input type="checkbox" name="verified" value="1" required style="margin-top:3px">
