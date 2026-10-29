@@ -1,0 +1,30 @@
+name: TukodTrack revision checks
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feature/revision-checklist-oct-2026]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_sqlite, sqlite3, bcmath, fileinfo
+          coverage: none
+      - name: Check PHP syntax
+        run: find app database routes -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist
+      - name: Laravel test suite
+        env:
+          APP_ENV: testing
+          APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+          SESSION_DRIVER: array
+          CACHE_STORE: array
+          QUEUE_CONNECTION: sync
+        run: php artisan test
