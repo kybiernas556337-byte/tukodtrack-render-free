@@ -13,6 +13,8 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/profile/password', [\App\Http\Controllers\PasswordController::class, 'edit'])->name('password.edit');
+    Route::post('/profile/password', [\App\Http\Controllers\PasswordController::class, 'update'])->name('password.update')->middleware('throttle:6,1');
     Route::get('/overview', [DashboardController::class, 'index'])->name('overview');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 
