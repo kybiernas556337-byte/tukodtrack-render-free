@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/user-access', [UserController::class, 'index'])->name('users.index');
         Route::post('/user-access', [UserController::class, 'store'])->name('users.store');
+        Route::post('/user-access/roles', [UserController::class, 'storeRole'])->name('users.roles.store');
         Route::put('/user-access/{user}', [UserController::class, 'update'])->name('users.update');
 
         Route::get('/utilities', [UtilityController::class, 'index'])->name('utilities.index');
