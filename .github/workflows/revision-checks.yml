@@ -16,6 +16,8 @@ jobs:
           coverage: none
       - name: Check PHP syntax
         run: find app database routes -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Validate SQL restore helper syntax
+        run: bash -n scripts/restore-sql-to-empty-db.sh
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist
       - name: Laravel test suite
