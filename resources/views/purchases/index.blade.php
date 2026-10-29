@@ -20,7 +20,7 @@
 
 @foreach($purchases->where('status', '!=', 'received') as $po)
 <x-modal id="recv{{ $po->id }}" title="Receive delivery" sub="{{ $po->reference }} · {{ $po->supplier?->name }}. Stock increases only for what you enter here.">
-  <form method="POST" action="{{ route('purchases.receive', $po) }}">
+  <form method="POST" action="{{ route('purchases.receive', $po) }}" data-confirm="Confirm the delivery and update inventory?">
     @csrf
     <div class="f"><label>Delivery reference (optional)</label><input class="input" name="delivery_reference" maxlength="60" placeholder="Delivery receipt no."></div>
     <table class="tbl ln"><thead><tr><th>Product</th><th>Ordered</th><th>Received so far</th><th>Receiving now</th></tr></thead><tbody>
@@ -39,7 +39,7 @@
 
 @if($owner)
 <x-modal id="poModal" title="New purchase order" sub="Ordered quantities enter stock only when a delivery is received." wide>
-  <form method="POST" action="{{ route('purchases.store') }}" id="poForm" data-products="{{ json_encode($picker) }}">
+  <form method="POST" action="{{ route('purchases.store') }}" id="poForm" data-confirm="Create this purchase order?" data-products="{{ json_encode($picker) }}">
     @csrf
     <div class="f"><label>Supplier</label>
       <select class="input" name="supplier_id" required><option value="">{{ $suppliers->isEmpty() ? 'Add a supplier first' : 'Choose supplier' }}</option>
