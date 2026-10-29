@@ -29,7 +29,9 @@
           <td><input class="input sm" type="number" step="any" min="0" max="{{ $it->ordered_qty - $it->received_qty }}" name="received[{{ $it->id }}]" value="{{ $it->ordered_qty - $it->received_qty }}"> {{ $it->product->base_unit }}</td></tr>
       @endforeach
     </tbody></table>
-    <div class="f" style="margin-top:14px"><label>Delivery remarks (optional)</label><input class="input" name="remarks" maxlength="150" placeholder="e.g. 2 bags damaged, returned to driver"></div>
+    <div class="f" style="margin-top:14px"><label>Name of person confirming receipt</label><input class="input" name="proof_received_name" maxlength="150" required placeholder="Recipient or verifying staff"></div>
+    <div class="f"><label>Proof of delivery notes</label><input class="input" name="proof_notes" maxlength="500" placeholder="Delivery receipt number or verification details"></div>
+    <div class="f"><label>Delivery remarks (optional)</label><input class="input" name="remarks" maxlength="150" placeholder="e.g. 2 bags damaged, returned to driver"></div>
     <label style="display:flex;gap:10px;align-items:flex-start;font-weight:500"><input type="checkbox" name="verified" value="1" required style="margin-top:3px">
       I checked the delivered items against the purchase order and the delivery receipt.</label>
     <div class="mfoot"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn">Post delivery</button></div>
