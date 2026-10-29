@@ -52,9 +52,15 @@
     <header class="top">
       <button class="tg" data-toggle-side aria-label="Toggle sidebar"><x-icon name="panel" /></button>
       <div class="crumb"><span>Store workspace</span><span>›</span><b>@yield('crumb')</b></div>
-      <div class="who">
-        <span class="av">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
-        <div><b>{{ $u->name }}</b><small>{{ $u->roleLabel() }}</small><a href="{{ route('password.edit') }}" style="font-size:12px;text-decoration:underline">Change password</a></div>
+      <div class="account-area">
+        <div class="account-identity">
+          <span class="av" aria-hidden="true">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
+          <div class="account-details">
+            <strong class="account-name">{{ $u->name }}</strong>
+            <span class="account-role">{{ $u->roleLabel() }}</span>
+          </div>
+        </div>
+        <a class="account-password-link" href="{{ route('password.edit') }}" aria-label="Change your password">Change password</a>
       </div>
     </header>
 
