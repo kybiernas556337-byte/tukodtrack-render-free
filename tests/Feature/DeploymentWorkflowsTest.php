@@ -23,6 +23,17 @@ class DeploymentWorkflowsTest extends TestCase
         $this->withoutVite();
     }
 
+    private function legacyBackupFixture(): array
+    {
+        $tables = ['categories', 'products', 'suppliers', 'purchases', 'purchase_items', 'deliveries', 'delivery_items',
+            'sales', 'sale_items', 'stock_adjustments', 'stock_movements', 'activity_logs', 'settings'];
+        $data = [];
+        foreach ($tables as $table) {
+            $data[$table] = DB::table($table)->get()->map(fn ($row) => (array) $row)->all();
+        }
+        return ['app' => 'TukodTrack', 'version' => 1, 'created_at' => now()->toIso8601String(), 'tables' => $data];
+    }
+
     private function owner(): User
     {
         return User::create(['name' => 'Test Owner', 'email' => 'owner@example.test',
@@ -52,11 +63,11 @@ class DeploymentWorkflowsTest extends TestCase
         $po = Purchase::firstOrFail();
         $item = $po->items()->firstOrFail();
         $this->assertSame(8.0, $p->fresh()->quantity_on_hand);
-        $this->post("/purchases/{$po->id}/receive", ['received' => [$item->id => 3], 'verified' => '1'])
+        $this->post("/purchases/{$po->id}/receive", ['received' => [$item->id => 3], 'verified' => '1', 'proof_received_name' => 'Test Receiver'])
             ->assertSessionHasNoErrors()->assertRedirect('/purchases');
         $this->assertSame('partial', $po->fresh()->status);
         $this->assertSame(11.0, $p->fresh()->quantity_on_hand);
-        $this->post("/purchases/{$po->id}/receive", ['received' => [$item->id => 2], 'verified' => '1'])->assertRedirect('/purchases');
+        $this->post("/purchases/{$po->id}/receive", ['received' => [$item->id => 2], 'verified' => '1', 'proof_received_name' => 'Test Receiver'])->assertRedirect('/purchases');
         $this->assertSame('received', $po->fresh()->status);
         $this->assertSame(13.0, $p->fresh()->quantity_on_hand);
 
@@ -84,7 +95,7 @@ class DeploymentWorkflowsTest extends TestCase
         $this->actingAs($owner = $this->owner());
         $this->product();
         for ($i = 0; $i < 205; $i++) Category::create(['name' => "Category $i"]);
-        $backup = json_decode($this->get('/utilities/backup')->assertOk()->streamedContent(), true);
+        $backup = $this->legacyBackupFixture();
         $count = Category::count();
         Category::create(['name' => 'After backup']);
         Storage::disk('local')->put('restore-pending/'.str_repeat('a', 40).'.json', json_encode($backup));
@@ -100,7 +111,7 @@ class DeploymentWorkflowsTest extends TestCase
     {
         $this->actingAs($this->owner());
         $p = $this->product();
-        $backup = json_decode($this->get('/utilities/backup')->streamedContent(), true);
+        $backup = $this->legacyBackupFixture();
         $backup['tables']['products'][0]['category_id'] = 999999;
         Storage::disk('local')->put('restore-pending/'.str_repeat('b', 40).'.json', json_encode($backup));
         $this->post('/utilities/restore', ['token' => str_repeat('b', 40),
@@ -122,6 +133,7 @@ class DeploymentWorkflowsTest extends TestCase
         $this->app->instance('env', 'production');
         $this->actingAs($this->owner());
         $this->get('/overview')->assertOk()->assertDontSee('Load sample data');
+        $this->withoutMiddleware(\\Illuminate\\Foundation\\Http\\Middleware\\ValidateCsrfToken::class);
         $this->post('/sample-data')->assertForbidden();
         $this->assertSame(0, Product::count());
     }
