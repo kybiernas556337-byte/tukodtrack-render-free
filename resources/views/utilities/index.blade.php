@@ -8,7 +8,7 @@
     <a class="btn" href="{{ route('utilities.backup') }}"><x-icon name="download" :size="18" /> Download backup</a></section>
   <section class="card"><x-icon name="refresh" :size="28" /><h3>Restore SQL backup</h3>
     <p>SQL backup restoration is performed using PostgreSQL administration tools on a separate Neon branch. The web app intentionally cannot execute uploaded SQL against the live database. Restoring a full SQL dump into an existing database may overwrite its records.</p>
-    <p><strong>Safe restore procedure:</strong> create a new Neon branch/database for recovery, connect using its credentials, then import the downloaded SQL file using <code>psql -v ON_ERROR_STOP=1 -1 -f your-backup.sql</code>. Verify data before switching any application connection. Do not run this against production.</p>
+    <p><strong>Safe restore procedure:</strong> create a new, <strong>empty</strong> Neon recovery database (a copied branch is not empty), connect using its credentials, then use the guarded script in <code>scripts/restore-sql-to-empty-db.sh</code> to import the downloaded SQL file. Verify data before switching any application connection. Do not run this against production.</p>
     <small class="muted">Older JSON imports are not supported in this SQL-only interface.</small>
     </section>
 </div>
