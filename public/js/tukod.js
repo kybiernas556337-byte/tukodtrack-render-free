@@ -11,7 +11,10 @@
     if (e.target.closest('[data-reload]')) location.reload();
     if (e.target.closest('[data-print]')) window.print();
   });
-  document.querySelectorAll('[data-toast]').forEach(t => setTimeout(() => t.remove(), 6000));
+  document.addEventListener('click', e => { if (e.target.closest('[data-dismiss-notice]')) e.target.closest('[data-toast]')?.remove(); });
+  document.getElementById('saleForm')?.addEventListener('submit', e => {
+    if (!confirm('Confirm sale? This will finalize payment and deduct stock.')) e.preventDefault();
+  });
 
   // add / edit modal for products, suppliers, users --------------------------
   function crudModal(id, key, fields, titles) {
