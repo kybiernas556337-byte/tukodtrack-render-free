@@ -36,7 +36,7 @@ class UtilityController extends Controller
             'PGPASSWORD' => $connection['password'] ?? '',
             'PGSSLMODE' => $connection['sslmode'] ?? 'require',
         ];
-        $process = new \Symfony\\Component\\Process\\Process($command, null, $environment);
+        $process = new \Symfony\Component\Process\Process($command, null, $environment);
         $process->setTimeout(180);
         $process->run();
         if (!$process->isSuccessful()) {
