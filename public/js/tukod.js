@@ -12,8 +12,9 @@
     if (e.target.closest('[data-print]')) window.print();
   });
   document.addEventListener('click', e => { if (e.target.closest('[data-dismiss-notice]')) e.target.closest('[data-toast]')?.remove(); });
-  document.getElementById('saleForm')?.addEventListener('submit', e => {
-    if (!confirm('Confirm sale? This will finalize payment and deduct stock.')) e.preventDefault();
+  document.addEventListener('submit', e => {
+    const message = e.target.dataset?.confirm;
+    if (message && !confirm(message)) e.preventDefault();
   });
 
   // add / edit modal for products, suppliers, users --------------------------
