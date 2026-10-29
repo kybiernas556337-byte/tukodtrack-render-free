@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('crumb', 'Inventory')
 @section('content')
+<a class="btn ghost" href="{{ route('inventory.report') }}">Inventory report</a>
 @php $owner = auth()->user()->isOwner(); @endphp
 <x-page-head title="Inventory" sub="Track stock movements and reconcile physical counts.">
   <button class="btn" data-open="#countModal"><x-icon name="clipboard" :size="16" /> Record count</button>

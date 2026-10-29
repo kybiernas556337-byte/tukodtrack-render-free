@@ -30,7 +30,7 @@
     <nav>
       <div class="nav-h">WORKSPACE</div>
       @foreach($nav as $n)
-        @if(in_array($u->role, $n['roles']))
+        @if($u->hasRole(...$n['roles']))
           <a href="{{ route($n['route']) }}" class="nav-i {{ request()->routeIs($n['on']) ? 'on' : '' }}">
             <x-icon :name="$n['icon']" /> <span>{{ $n['label'] }}</span>
             @if($n['label'] === 'Inventory' && $lowCount)<em>{{ $lowCount }}</em>@endif
@@ -52,7 +52,7 @@
     <header class="top">
       <button class="tg" data-toggle-side aria-label="Toggle sidebar"><x-icon name="panel" /></button>
       <div class="crumb"><span>Store workspace</span><span>›</span><b>@yield('crumb')</b></div>
-      <div class="who">
+      <a href="{{ route('password.edit') }}">Change password</a><div class="who">
         <span class="av">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
         <div><b>{{ $u->name }}</b><small>{{ $u->roleLabel() }}</small></div>
       </div>

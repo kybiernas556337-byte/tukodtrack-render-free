@@ -2,8 +2,19 @@
 
 namespace Tests\Feature;
 
-use App\Models\{Category, Product, Purchase, Sale, StockAdjustment, Supplier, User};
-use Illuminate\Support\Facades\{Artisan, DB, Hash, Storage};
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Purchase;
+use App\Models\Sale;
+use App\Models\StockAdjustment;
+use App\Models\Supplier;
+use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class DeploymentWorkflowsTest extends TestCase
@@ -13,7 +24,7 @@ class DeploymentWorkflowsTest extends TestCase
         parent::setUp();
         if (DB::getDriverName() === 'pgsql') {
             $database = DB::selectOne('SELECT current_database() AS name')->name;
-            if (!str_ends_with($database, '_test')) {
+            if (! str_ends_with($database, '_test')) {
                 throw new \RuntimeException('Refusing to run destructive tests: PostgreSQL database name must end in _test.');
             }
         } elseif (config('database.connections.sqlite.database') !== ':memory:') {
@@ -21,6 +32,17 @@ class DeploymentWorkflowsTest extends TestCase
         }
         Artisan::call('migrate:fresh', ['--force' => true]);
         $this->withoutVite();
+    }
+
+    private function legacyBackup(): array
+    {
+        $tables = ['categories', 'products', 'suppliers', 'purchases', 'purchase_items', 'deliveries', 'delivery_items', 'sales', 'sale_items', 'stock_adjustments', 'stock_movements', 'activity_logs', 'settings'];
+        $backup = ['app' => 'TukodTrack', 'version' => 1, 'created_at' => now()->toIso8601String(), 'tables' => []];
+        foreach ($tables as $table) {
+            $backup['tables'][$table] = DB::table($table)->get()->map(fn ($r) => (array) $r)->all();
+        }
+
+        return $backup;
     }
 
     private function owner(): User
@@ -34,6 +56,7 @@ class DeploymentWorkflowsTest extends TestCase
         $this->post('/products', ['name' => 'Claw Hammer', 'code' => 'TEST-001', 'category' => 'Tools',
             'base_unit' => 'piece', 'selling_price' => 100, 'reorder_level' => 2, 'opening_stock' => 10])
             ->assertSessionHasNoErrors()->assertRedirect('/products');
+
         return Product::firstOrFail();
     }
 
@@ -52,11 +75,11 @@ class DeploymentWorkflowsTest extends TestCase
         $po = Purchase::firstOrFail();
         $item = $po->items()->firstOrFail();
         $this->assertSame(8.0, $p->fresh()->quantity_on_hand);
-        $this->post("/purchases/{$po->id}/receive", ['received' => [$item->id => 3], 'verified' => '1'])
+        $this->post("/purchases/{$po->id}/receive", ['received' => [$item->id => 3], 'verified' => '1', 'proof' => UploadedFile::fake()->create('delivery.pdf', 10, 'application/pdf')])
             ->assertSessionHasNoErrors()->assertRedirect('/purchases');
         $this->assertSame('partial', $po->fresh()->status);
         $this->assertSame(11.0, $p->fresh()->quantity_on_hand);
-        $this->post("/purchases/{$po->id}/receive", ['received' => [$item->id => 2], 'verified' => '1'])->assertRedirect('/purchases');
+        $this->post("/purchases/{$po->id}/receive", ['received' => [$item->id => 2], 'verified' => '1', 'proof' => UploadedFile::fake()->create('delivery.pdf', 10, 'application/pdf')])->assertRedirect('/purchases');
         $this->assertSame('received', $po->fresh()->status);
         $this->assertSame(13.0, $p->fresh()->quantity_on_hand);
 
@@ -83,8 +106,10 @@ class DeploymentWorkflowsTest extends TestCase
     {
         $this->actingAs($owner = $this->owner());
         $this->product();
-        for ($i = 0; $i < 205; $i++) Category::create(['name' => "Category $i"]);
-        $backup = json_decode($this->get('/utilities/backup')->assertOk()->streamedContent(), true);
+        for ($i = 0; $i < 205; $i++) {
+            Category::create(['name' => "Category $i"]);
+        }
+        $backup = $this->legacyBackup();
         $count = Category::count();
         Category::create(['name' => 'After backup']);
         Storage::disk('local')->put('restore-pending/'.str_repeat('a', 40).'.json', json_encode($backup));
@@ -100,7 +125,7 @@ class DeploymentWorkflowsTest extends TestCase
     {
         $this->actingAs($this->owner());
         $p = $this->product();
-        $backup = json_decode($this->get('/utilities/backup')->streamedContent(), true);
+        $backup = $this->legacyBackup();
         $backup['tables']['products'][0]['category_id'] = 999999;
         Storage::disk('local')->put('restore-pending/'.str_repeat('b', 40).'.json', json_encode($backup));
         $this->post('/utilities/restore', ['token' => str_repeat('b', 40),
@@ -119,6 +144,7 @@ class DeploymentWorkflowsTest extends TestCase
 
     public function test_sample_data_is_hidden_and_blocked_in_production(): void
     {
+        $this->withoutMiddleware(ValidateCsrfToken::class);
         $this->app->instance('env', 'production');
         $this->actingAs($this->owner());
         $this->get('/overview')->assertOk()->assertDontSee('Load sample data');
