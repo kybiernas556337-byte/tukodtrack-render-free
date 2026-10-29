@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\{Category, Product, Purchase, Sale, StockAdjustment, Supplier, User};
 use Illuminate\Support\Facades\{Artisan, DB, Hash, Storage};
 use Tests\TestCase;
+use Illuminate\Http\UploadedFile;
 
 class DeploymentWorkflowsTest extends TestCase
 {
@@ -63,7 +64,14 @@ class DeploymentWorkflowsTest extends TestCase
         $po = Purchase::firstOrFail();
         $item = $po->items()->firstOrFail();
         $this->assertSame(8.0, $p->fresh()->quantity_on_hand);
-        $this->post("/purchases/{$po->id}/receive", ['received' => [$item->id => 3], 'verified' => '1', 'proof_received_name' => 'Test Receiver'])
+        $this->post("/purchases/{$po->id}/receive", [
+            'received' => [$item->id => 3], 'verified' => '1',
+            'proof_received_name' => 'Test Receiver',
+        ])->assertSessionHasErrors('proof_image');
+        $this->assertSame(8.0, $p->fresh()->quantity_on_hand);
+        $this->assertSame('pending', $po->fresh()->status);
+        $this->assertSame(0, \App\Models\Delivery::count());
+        $this->post("/purchases/{$po->id}/receive", ['received' => [$item->id => 3], 'verified' => '1', 'proof_received_name' => 'Test Receiver', 'proof_image' => UploadedFile::fake()->image('delivery.jpg')])
             ->assertSessionHasNoErrors()->assertRedirect('/purchases');
         $this->assertSame('partial', $po->fresh()->status);
         $this->assertSame(11.0, $p->fresh()->quantity_on_hand);
