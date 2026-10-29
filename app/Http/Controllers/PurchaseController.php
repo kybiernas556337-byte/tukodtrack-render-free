@@ -41,15 +41,27 @@ class PurchaseController extends Controller
         return redirect()->route('purchases.index')->with('success', 'Saved successfully');
     }
 
+    public function proof(Delivery $delivery)
+    {
+        abort_unless($delivery->proof_image_data, 404);
+        return response(base64_decode($delivery->proof_image_data), 200, [
+            'Content-Type' => $delivery->proof_image_mime,
+            'Content-Disposition' => 'inline; filename="delivery-proof-' . $delivery->id . '"',
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
     public function receive(Request $r, Purchase $purchase)
     {
         $d = $r->validate([
             'delivery_reference' => 'nullable|string|max:60', 'received' => 'required|array', 'received.*' => 'nullable|numeric|min:0',
             'verified' => 'accepted', 'remarks' => 'nullable|string|max:150',
             'proof_received_name' => 'required|string|max:150', 'proof_notes' => 'nullable|string|max:500',
+            'proof_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ], ['verified.accepted' => 'Please confirm that you verified the delivery before posting it.']);
         try {
-            DB::transaction(function () use ($d, $purchase) {
+            DB::transaction(function () use ($d, $purchase, $r) {
                 $delivery = null;
                 foreach ($purchase->items()->with('product')->get() as $it) {
                     $q = round((float) ($d['received'][$it->id] ?? 0), 3);
@@ -61,6 +73,8 @@ class PurchaseController extends Controller
                         'purchase_id' => $purchase->id, 'delivery_reference' => $d['delivery_reference'] ?? null,
                         'received_by' => auth()->id(), 'received_at' => now(),
                         'proof_received_name' => $d['proof_received_name'], 'proof_notes' => $d['proof_notes'] ?? null, 'proof_confirmed_at' => now(),
+                        'proof_image_data' => $r->hasFile('proof_image') ? base64_encode(file_get_contents($r->file('proof_image')->getRealPath())) : null,
+                        'proof_image_mime' => $r->hasFile('proof_image') ? $r->file('proof_image')->getMimeType() : null,
                     ]);
                     $di = $delivery->items()->create(['purchase_item_id' => $it->id, 'quantity' => $q]);
                     $it->increment('received_qty', $q);
